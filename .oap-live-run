@@ -1,3 +1,3 @@
-trigger=2026-08-20T11:40:00+08:00
+trigger=2026-08-20T11:43:00+08:00
 issue=3
-purpose=retest-actions-repository-secret-and-run-live-pilot
+purpose=diagnose-actions-secret-visibility-and-run-live-pilot
