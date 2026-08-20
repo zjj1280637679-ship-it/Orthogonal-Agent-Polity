@@ -1,0 +1,27 @@
+# Secrets
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# Experiment runtime
+implementation/results/raw/
+implementation/results/tmp/
+implementation/.cache/
+implementation/.oap/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

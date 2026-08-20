@@ -14,6 +14,6 @@ The first engineering target is a DeepSeek harness multimodal-agent experiment:
 - **Subagent:** a multimodal Doubao Seed model, initially `doubao-seed-2-0-lite-260428`.
 - **Question:** can different OAP governance modes change the probability that the Main Agent escapes a wrong reasoning attractor after the Subagent observes external multimodal evidence?
 
-The implementation work is specified in [HARNESS_TASK.md](./HARNESS_TASK.md), with experiment design in [EXPERIMENT.md](./EXPERIMENT.md) and secret-handling rules in [SECURITY.md](./SECURITY.md).
+The implementation work is specified in [HARNESS_TASK.md](./HARNESS_TASK.md), with experiment design in [EXPERIMENT.md](./EXPERIMENT.md), model resources in [MODEL_POOL.md](./MODEL_POOL.md), and secret-handling rules in [SECURITY.md](./SECURITY.md).
 
-DeepSeek-TUI / DeepSeek harness can load the repository-local skill under `.agents/skills/oap-attractor-experiment/`.
+DeepSeek-TUI / DeepSeek harness can load the repository-local skill under `.deepseek/skills/oap-attractor-experiment/`.
