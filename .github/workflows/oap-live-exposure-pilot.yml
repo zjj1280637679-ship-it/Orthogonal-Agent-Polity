@@ -1,0 +1,62 @@
+name: OAP live exposure pilot
+
+on:
+  push:
+    branches:
+      - experiment/deepseek-oap-attractor-v0.1
+    paths:
+      - .oap-live-run
+
+permissions:
+  contents: write
+
+jobs:
+  live-pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      ARK_API_KEY: ${{ secrets.HUOSHANYINQINGAPI }}
+      ARK_SUBAGENT_MODEL: doubao-seed-2-0-lite-260428
+      ARK_CHAT_COMPLETIONS_URL: https://ark.cn-beijing.volces.com/api/v3/chat/completions
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: experiment/deepseek-oap-attractor-v0.1
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install minimal dependencies
+        run: python -m pip install --disable-pip-version-check requests pillow
+
+      - name: Probe Ark models
+        run: python scripts/probe_ark_models.py
+        continue-on-error: true
+
+      - name: Run 2^4 exposure factorial on Seed multimodal model
+        run: python scripts/live_exposure_factorial.py
+        continue-on-error: true
+
+      - name: Run blind -> unblind DeepSeek/Seed pilot when Main is discoverable
+        run: python scripts/live_blind_unblind_pair.py
+        continue-on-error: true
+
+      - name: Commit sanitized live results
+        shell: bash
+        run: |
+          if [ ! -d results/live ]; then
+            echo "No result directory produced"
+            exit 0
+          fi
+          git config user.name "oap-experiment-bot"
+          git config user.email "oap-experiment-bot@users.noreply.github.com"
+          git add results/live
+          if git diff --cached --quiet; then
+            echo "No sanitized result changes to commit"
+            exit 0
+          fi
+          git commit -m "experiment: record live exposure pilot"
+          git push origin HEAD:experiment/deepseek-oap-attractor-v0.1
