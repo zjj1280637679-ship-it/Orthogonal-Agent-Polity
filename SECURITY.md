@@ -2,11 +2,13 @@
 
 ## Secret source
 
-The live Volcano Ark credential is provided through a GitHub Repository Secret named:
+The live Volcano Ark credential is expected through a GitHub secret named:
 
 `HUOSHANYINQINGAPI`
 
-GitHub Actions may map it into the process environment as:
+For **GitHub Actions** experiments, this value must exist specifically as an **Actions repository secret** (or as an environment secret referenced by the job). GitHub's newer Copilot/Agents, Codespaces, Dependabot and Actions secret stores are separate scopes; creating a secret for another product does not automatically make it available through the Actions `secrets` context.
+
+GitHub Actions maps the Actions secret into the process environment as:
 
 ```yaml
 env:
@@ -14,6 +16,8 @@ env:
 ```
 
 The secret value must never be committed, printed, echoed, uploaded, or copied into model prompts.
+
+If `${{ secrets.HUOSHANYINQINGAPI }}` resolves to an empty string, the experiment must record a clean `ARK_API_KEY missing` skip and make **no provider request**.
 
 ---
 
@@ -37,8 +41,8 @@ The secret value must never be committed, printed, echoed, uploaded, or copied i
 4. **No live secret on untrusted PR execution.**
    Live API tests must not run automatically for pull requests from arbitrary code changes.
 
-5. **Live tests are opt-in.**
-   Use `workflow_dispatch` or an equivalently explicit operator action for real Ark calls.
+5. **Live tests are opt-in / trusted-trigger only.**
+   Preferred production form is `workflow_dispatch` on a reviewed workflow. During the current experimental branch, an explicit marker-file push (`.oap-live-run`) is also allowed because it is a deliberate operator action on the owner-controlled branch and the workflow only commits sanitized results. Do not broaden that trigger to arbitrary PRs.
 
 6. **Offline CI first.**
    Unit and polity tests must run with fake providers and require no credentials.
@@ -102,16 +106,16 @@ Runs on push / pull request:
 
 No Ark secret is mapped into the job.
 
-### `live-experiment.yml`
+### live experiment workflow
 
-Runs only by explicit manual dispatch:
+Trusted/manual trigger only:
 
-- maps `HUOSHANYINQINGAPI` to `ARK_API_KEY`;
-- accepts model IDs / case subset / polity subset as inputs where useful;
+- maps Actions secret `HUOSHANYINQINGAPI` to `ARK_API_KEY`;
 - performs provider smoke tests before the full experiment;
-- uploads only sanitized results.
+- writes/uploads only sanitized results;
+- never commits raw HTTP response objects containing headers.
 
-If the secret is unavailable, fail with `ARK_API_KEY is not configured` without printing environment state.
+If the secret is unavailable, record `ARK_API_KEY is not configured` without printing environment state.
 
 ---
 
@@ -123,7 +127,7 @@ Default log shape:
 {
   "provider": "volcano-ark",
   "model": "configured model id",
-  "request_kind": "responses",
+  "request_kind": "chat_completions",
   "status": "completed",
   "latency_ms": 1234,
   "usage": {},
@@ -149,7 +153,7 @@ If a real API key is ever committed or printed into a public GitHub artifact/log
 
 1. stop live experiments;
 2. rotate/revoke the key in Volcano Ark immediately;
-3. replace the GitHub Repository Secret;
+3. replace the GitHub secret;
 4. remove the leaked material from current repository content/artifacts;
 5. treat removal from the latest commit as insufficient if the secret entered Git history;
 6. document the incident without reproducing the key.
