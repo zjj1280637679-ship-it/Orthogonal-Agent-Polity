@@ -32,6 +32,24 @@ jobs:
       - name: Install minimal dependencies
         run: python -m pip install --disable-pip-version-check requests pillow
 
+      - name: Record safe secret availability
+        shell: bash
+        run: |
+          mkdir -p results/live
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          payload = {
+              "ark_api_key_present": bool(os.environ.get("ARK_API_KEY")),
+              "github_run_id": os.environ.get("GITHUB_RUN_ID"),
+              "github_run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT"),
+              "github_sha": os.environ.get("GITHUB_SHA"),
+          }
+          Path("results/live/secret_presence.json").write_text(
+              json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
+          )
+          PY
+
       - name: Probe Ark models
         run: python scripts/probe_ark_models.py
         continue-on-error: true
